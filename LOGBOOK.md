@@ -93,4 +93,20 @@ Log entries report observable project activity, not private reasoning. Do not de
 - **Artifacts/evidence:** `src/yukti/datasets.py`; `src/yukti/registry.py`; `src/yukti/trainer.py`; `src/yukti/cli.py`; `tests/test_registry.py`; `tests/test_trainer.py`.
 - **Next action:** Execute Step 9 release-readiness verification and generate the final project report package.
 
+### 2026-10-12 23:25 Asia/Kolkata — Local Git version control initialized and initial commit created
+
+- **Roadmap step:** Version control and repository initialization.
+- **Purpose:** Comply with user directive to initialize Git version control and prepare the repository for remote synchronization.
+- **Actions/files:**
+  - Initialized local Git repository on branch `main` (`git init -b main`).
+  - Staged all 23 clean workspace source files and tests, respecting `.gitignore` exclusions (`data/`, `models/`, `outputs/`, `__pycache__/`).
+  - Created root commit `5241c68abe429da934c3ec43063b91c2fafb8064` (`feat: complete epistemic governance core, model registry, and adaptation runner`).
+- **Commands/tools and result:**
+  - `git init -b main`: Exit code 0.
+  - `git commit -m "..."`: 23 files changed, 2,475 insertions (+).
+- **Decision/change:** Repository is now tracked locally on Git branch `main`. Ready to add GitHub remote when URL is provided.
+- **Artifacts/evidence:** Commit hash `5241c68abe429da934c3ec43063b91c2fafb8064`.
+- **Next action:** Provide GitHub remote instructions or push to GitHub if remote URL is specified.
+
+
 
