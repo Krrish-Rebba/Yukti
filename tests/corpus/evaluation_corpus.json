@@ -1,0 +1,76 @@
+[
+  {
+    "id": "TC-01",
+    "name": "Verified high-trust scientific fact",
+    "text": "The speed of light in a vacuum is defined as 299,792,458 meters per second.",
+    "source": "https://www.bipm.org/en/measurement-units",
+    "evidence": "The speed of light c is exactly 299 792 458 m/s by international definition.",
+    "trust": 1.0,
+    "expected_flags": []
+  },
+  {
+    "id": "TC-02",
+    "name": "Unanchored claim with missing source",
+    "text": "Quantum computers can break RSA encryption in 30 seconds today.",
+    "source": "",
+    "evidence": "",
+    "trust": 0.5,
+    "expected_flags": ["missing_source", "missing_evidence_quote"]
+  },
+  {
+    "id": "TC-03",
+    "name": "Missing direct evidence quote",
+    "text": "A total solar eclipse occurred on April 8, 2024 across North America.",
+    "source": "https://science.nasa.gov/eclipses/future-eclipses/eclipse-2024/",
+    "evidence": "",
+    "trust": 0.9,
+    "expected_flags": ["missing_evidence_quote"]
+  },
+  {
+    "id": "TC-04",
+    "name": "Low source trust warning",
+    "text": "A new perpetual motion engine achieves 150 percent thermal efficiency.",
+    "source": "https://fringe-theories-blog.xyz/perpetual-motion",
+    "evidence": "Efficiency is 150%",
+    "trust": 0.15,
+    "expected_flags": ["low_source_trust"]
+  },
+  {
+    "id": "TC-05",
+    "name": "Degenerate noise loop (RM CS10 collapse case)",
+    "text": "apple apple apple 1 1 1 asdf apple apple apple 1 1 1 asdf apple apple",
+    "source": "https://synthetic-noise.internal",
+    "evidence": "synthetic test input",
+    "trust": 0.8,
+    "expected_flags": ["degenerate_repetition", "low_lexical_diversity"]
+  },
+  {
+    "id": "TC-06",
+    "name": "Ungrounded speculative rumor",
+    "text": "It is rumored that the central bank will secretly replace all currency next week.",
+    "source": "https://conspiracy-forum.net/thread/99",
+    "evidence": "",
+    "trust": 0.2,
+    "expected_flags": ["missing_evidence_quote", "low_source_trust", "ungrounded_speculation"]
+  },
+  {
+    "id": "TC-07",
+    "name": "Direct polar contradiction of validated fact",
+    "text": "The speed of light in a vacuum is not defined as 299,792,458 meters per second.",
+    "source": "https://alt-physics.org/speed-of-light",
+    "evidence": "Speed of light is variable",
+    "trust": 0.7,
+    "context_existing_id": 1,
+    "expected_flags": ["possible_contradiction_of:1"]
+  },
+  {
+    "id": "TC-08",
+    "name": "Exact hash duplicate",
+    "text": "The speed of light in a vacuum is defined as 299,792,458 meters per second.",
+    "source": "https://www.bipm.org/en/measurement-units",
+    "evidence": "Duplicate citation",
+    "trust": 1.0,
+    "context_existing_id": 1,
+    "expected_flags": ["exact_duplicate_of:1"]
+  }
+]
