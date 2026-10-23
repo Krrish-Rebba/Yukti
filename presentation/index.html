@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yukti: Resource-Bounded Epistemic Governance & Continuous Model Adaptation</title>
+  <meta name="description" content="Technical presentation on the Yukti architecture: transitioning from edge-constrained dual-SLM distillation into provable epistemic governance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #080c14;
+      --bg-card: rgba(16, 24, 39, 0.75);
+      --bg-card-hover: rgba(26, 38, 62, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(0, 242, 254, 0.3);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-violet: #8a2be2;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(79, 172, 254, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(138, 43, 226, 0.08) 0%, transparent 40%);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(8, 12, 20, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      color: #fff;
+      font-size: 1.1rem;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .slide-counter {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.45rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border: none;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
+    }
+
+    /* Progress Bar */
+    .progress-bar-container {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 9%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-violet));
+      transition: width 0.3s ease;
+      box-shadow: 0 0 8px var(--accent-cyan);
+    }
+
+    /* Main Presentation Container */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      max-width: 1300px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 3rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: fadeIn 0.35s ease-out;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Slide Typography */
+    .slide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      padding: 0.35rem 0.8rem;
+      border-radius: 100px;
+      background: rgba(0, 242, 254, 0.1);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      margin-bottom: 1.25rem;
+    }
+
+    .slide-badge.badge-amber {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--accent-amber);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .slide-badge.badge-emerald {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-emerald);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .slide-badge.badge-rose {
+      background: rgba(244, 63, 94, 0.1);
+      color: var(--accent-rose);
+      border-color: rgba(244, 63, 94, 0.25);
+    }
+
+    h1.slide-title {
+      font-family: var(--font-heading);
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.slide-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      max-width: 950px;
+    }
+
+    /* Grids & Cards */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Metric Highlight Callout */
+    .metric-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    /* Code & Formulas */
+    .formula-box {
+      font-family: var(--font-mono);
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      font-size: 0.95rem;
+      color: #7dd3fc;
+      margin: 1rem 0;
+      display: inline-block;
+    }
+
+    /* Interactive Phase Explorer */
+    .timeline-nav {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .timeline-step-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .timeline-step-btn.active {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: var(--accent-cyan);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+    }
+
+    .phase-content-panel {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .phase-content-panel.active {
+      display: block;
+    }
+
+    /* Authors Section */
+    .authors-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+
+    .author-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.25rem;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .author-card:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.03);
+    }
+
+    .author-name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+
+    .author-id {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent-cyan);
+    }
+
+    /* Comparison Table */
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 1.25rem 0;
+    }
+
+    .comp-table th, .comp-table td {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      text-align: left;
+    }
+
+    .comp-table th {
+      background: rgba(255, 255, 255, 0.04);
+      font-family: var(--font-heading);
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .comp-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .tag-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .tag-danger { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+    .tag-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+    /* Footer Navigation */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border-color);
+      background: rgba(8, 12, 20, 0.85);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .keyboard-hints {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .kbd {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      padding: 0.15rem 0.45rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-main);
+    }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3, .authors-grid { grid-template-columns: 1fr; }
+      .slide { padding: 1.75rem; }
+      h1.slide-title { font-size: 1.85rem; }
+      header, footer { padding: 0.75rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo" id="logo-icon">Y</div>
+      <div>
+        <div class="brand-title">YUKTI RESEARCH</div>
+        <div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">Epistemic Governance & Model Adaptation</div>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <div class="slide-counter" id="slide-indicator">Slide 1 / 11</div>
+      <button class="btn" id="btn-prev" onclick="prevSlide()" aria-label="Previous Slide">← Prev</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextSlide()" aria-label="Next Slide">Next →</button>
+      <button class="btn" id="btn-fullscreen" onclick="toggleFullScreen()" title="Toggle Fullscreen">⛶</button>
+    </div>
+  </header>
+
+  <!-- Visual Progress Bar -->
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+
+  <!-- Presentation Slides Main Stage -->
+  <main>
+
+    <!-- Slide 1: Title & Author Showcase -->
+    <section class="slide active" id="slide-1">
+      <div class="slide-badge">Research Project Presentation</div>
+      <h1 class="slide-title">Yukti: Resource-Bounded Epistemic Governance & Continuous Adaptation</h1>
+      <p class="slide-subtitle">
+        Bridging edge-constrained dual-SLM distillation into an inspectable, provably grounded continual learning architecture for small language models.
+      </p>
+
+      <div class="authors-grid">
+        <div class="author-card">
+          <div class="author-name">Krrish Rebbawar</div>
+          <div class="author-id">ID: 1012412134</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">Lead Architecture & Governance Core</div>
+        </div>
+        <div class="author-card">
+          <div class="author-name">Pranav Chandane</div>
+          <div class="author-id">ID: 1012412146</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">Entropy Calibration & Optimization (PR #1)</div>
+        </div>
+        <div class="author-card">
+          <div class="author-name">Jayosmit Shinde</div>
+          <div class="author-id">ID: 1012412145</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">Evaluation Harness & Benchmark Suites</div>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top: 1.5rem;">
+        <div class="card">
+          <div class="card-title">🖥️ Hardware Target</div>
+          <div class="card-text">NVIDIA RTX 3050 Laptop GPU (4GB VRAM ceiling). Zero cloud dependencies, 100% on-device.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔒 Storage Envelope</div>
+          <div class="card-text">Strict 20 GB project disk allowance. Tiny 1.8 MB LoRA checkpoints with zero waste.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Epistemic Guarantee</div>
+          <div class="card-text">Decoupled provenance intake, polar contradiction filtering, and retention benchmark gating.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 2: The Core Problem & Motivation -->
+    <section class="slide" id="slide-2">
+      <div class="slide-badge badge-amber">The Core Problem Space</div>
+      <h1 class="slide-title">The Vulnerability of Autonomous Continual Learning</h1>
+      <p class="slide-subtitle">
+        Why current state-of-the-art frameworks fail on consumer edge hardware and why unanchored distillation collapses.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-rose);">❌ SOTA Limitations (e.g. MIT SEAL)</div>
+          <p class="card-text">
+            • <strong>Extreme Compute Overhead:</strong> Requires multi-node 80GB A100/H100 GPU clusters running heavy Reinforcement Learning (PPO) policy rollouts.<br>
+            • <strong>Dependent on Outer Task Rewards:</strong> Requires held-out evaluation sets with programmatic reward scorers for every single candidate self-edit.<br>
+            • <strong>Monolithic Drift:</strong> A single model acts recursively as editor and recipient; corrupted self-edits progressively poison future iterations.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color: var(--accent-cyan);">💡 Our Research Objective</div>
+          <p class="card-text">
+            • <strong>Consumer-Viable (4GB VRAM):</strong> Develop a mathematically disciplined continual learning system on consumer laptops.<br>
+            • <strong>No Outer RL Rollouts:</strong> Epistemic filtration grounded in information theory, citation provenance, and polar contradiction checking.<br>
+            • <strong>Asymmetric Decoupling:</strong> Frozen 4-bit teacher for generative stability + isolated student LoRA adapter ($r=8$) to shield base weights.
+          </p>
+        </div>
+      </div>
+
+      <div class="metric-box" style="margin-top: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div class="metric-value">4096 MiB VRAM</div>
+            <div class="metric-label">Rigid Hardware Ceiling (RTX 3050 Laptop GPU)</div>
+          </div>
+          <div>
+            <div class="metric-value">&lt; 1850 MiB</div>
+            <div class="metric-label">Peak Memory Recorded via Sequential Purge</div>
+          </div>
+          <div>
+            <div class="metric-value">20.0 GB</div>
+            <div class="metric-label">Project Storage Allowance Baseline</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 3: 6-Phase Engineering Overview -->
+    <section class="slide" id="slide-3">
+      <div class="slide-badge badge-emerald">Progress & Architecture</div>
+      <h1 class="slide-title">The 6-Phase Engineering Trajectory</h1>
+      <p class="slide-subtitle">
+        Select a phase below to explore how the RM base prototype evolved into Yukti's epistemic governance framework.
+      </p>
+
+      <!-- Interactive Timeline Selector -->
+      <div class="timeline-nav">
+        <button class="timeline-step-btn active" onclick="showPhase(1)">Phase 1: 4GB Isolation</button>
+        <button class="timeline-step-btn" onclick="showPhase(2)">Phase 2: Shannon HES Gate</button>
+        <button class="timeline-step-btn" onclick="showPhase(3)">Phase 3: Domain Stress (CS1-9)</button>
+        <button class="timeline-step-btn" onclick="showPhase(4)">Phase 4: Collapse Audit (CS10)</button>
+        <button class="timeline-step-btn" onclick="showPhase(5)">Phase 5: Passage & Bounds (CS14-15)</button>
+        <button class="timeline-step-btn" onclick="showPhase(6)" style="border-color: var(--accent-cyan);">Phase 6: Yukti Transition</button>
+      </div>
+
+      <!-- Phase 1 Content -->
+      <div class="phase-content-panel active" id="phase-panel-1">
+        <div class="card">
+          <div class="card-title">Phase 1: Hardware Constraint Optimization & Asymmetric Dual-SLM</div>
+          <p class="card-text">
+            Engineered the foundational architecture on an RTX 3050 Laptop GPU (4GB VRAM). Configured <strong>SmolLM2-360M-Instruct</strong> in 4-bit NormalFloat as the frozen Teacher (~280 MB VRAM) and <strong>SmolLM2-135M</strong> in 4-bit with LoRA adapters ($r=8, \alpha=16$) as the adaptable Student. Established the <strong>Sequential In-Memory Purging</strong> protocol (`gc.collect()` + `cuda.empty_cache()`), ensuring Teacher and Student never coexist in GPU memory during backward passes.
+          </p>
+          <div class="formula-box">Peak VRAM = max(VRAM_Teacher, VRAM_Student_Train) = 1.84 GB &lt; 4.0 GB</div>
+        </div>
+      </div>
+
+      <!-- Phase 2 Content -->
+      <div class="phase-content-panel" id="phase-panel-2">
+        <div class="card">
+          <div class="card-title">Phase 2: Information-Theoretic Governance & Shannon Token Entropy</div>
+          <p class="card-text">
+            Built an autonomous algorithmic gatekeeper that intercepts raw token logits during generation and computes token-level Shannon entropy:
+          </p>
+          <div class="formula-box">H(t) = - \sum_{v \in V} P(v | x_{&lt;t}) \log_2 P(v | x_{&lt;t}) \quad \longrightarrow \quad \text{HES}_{\text{relative}} = \sum_{k \ge \lfloor 0.8 L \rfloor} H_{(k)} \ge \tau_{\text{utility}}</div>
+          <p class="card-text">
+            Evaluated top-20% high-entropy tokens to filter out repetitive, degenerate outputs. Verified on CS1 baseline (Relativity explanation yielded 30–55 bits).
+          </p>
+        </div>
+      </div>
+
+      <!-- Phase 3 Content -->
+      <div class="phase-content-panel" id="phase-panel-3">
+        <div class="card">
+          <div class="card-title">Phase 3: Continual LoRA Adaptation Across 9 Domains (CS1–CS9)</div>
+          <p class="card-text">
+            Stress-tested sequential adaptation across Common Knowledge, Algebra, Translation, Fact Flooding, Poetry, and Assembly. 
+            <strong>The CS6 Discovery:</strong> An adversarial prompt ("Prove 1+1=3") generated high token entropy ($> 25$ bits) and passed the HES gatekeeper because the reasoning format was structured, despite being semantically false. <em>Proved that statistical token entropy cannot evaluate factual truth!</em>
+          </p>
+        </div>
+      </div>
+
+      <!-- Phase 4 Content -->
+      <div class="phase-content-panel" id="phase-panel-4">
+        <div class="card">
+          <div class="card-title">Phase 4: Full-Parameter Collapse Boundary Experiment (CS10)</div>
+          <p class="card-text">
+            Removed LoRA adapters and subjected all 135M dense base parameters to repetitive noise gradients (`"apple apple 1 1 asdf"`).
+            <strong>Empirical Finding:</strong> Unconstrained gradient explosion triggered numerical overflow (`Loss: NaN`) in 15 steps. Full model weights exploded, completely destroying representation. Contrast with CS9 where LoRA subspace projection mathematically shielded base weights.
+          </p>
+          <div class="formula-box">W = W_0 + \frac{\alpha}{r} (B \cdot A) \quad \implies \quad W_0 \text{ is invariant under noise}</div>
+        </div>
+      </div>
+
+      <!-- Phase 5 Content -->
+      <div class="phase-content-panel" id="phase-panel-5">
+        <div class="card">
+          <div class="card-title">Phase 5: Grounded Passage Incorporation & Contributor Bounds Calibration (CS14 & CS15)</div>
+          <p class="card-text">
+            <strong>CS14:</strong> Trained on a scientifically dense passage on Quantum Vacuum Fluctuations & Entanglement. Verified true perplexity drop of <strong>-35.67 PPL</strong> on held-out QA while control algebra perplexity improved from 31.70 to 30.15.<br>
+            <strong>CS15 (PR #1 by Pranavhc):</strong> Transitioned from sum to mean entropy and added dual bounds $[u_{\min}, u_{\max}]$. Diagnosed pipeline stalling caused by uncalibrated $u_{\max}=2.40$; recalibrated to natural distribution ($[2.0, 5.5]$), yielding 60% retention.
+          </p>
+        </div>
+      </div>
+
+      <!-- Phase 6 Content -->
+      <div class="phase-content-panel" id="phase-panel-6">
+        <div class="card" style="border-color: rgba(0, 242, 254, 0.3);">
+          <div class="card-title" style="color: var(--accent-cyan);">Phase 6: The Epistemic Overhaul — Transition to Yukti</div>
+          <p class="card-text">
+            Replaced single-point entropy filtering with <strong>Epistemic Governance</strong>: decoupled candidate intake from model weights, durable SQLite persistence, multi-vector triage (missing evidence, low trust, SHA-256 deduplication, polar contradiction, repetition loops, hedging phrases), multi-task retention baseline suites, automated $>10\%$ degradation rejection gates, and deterministic model rollback.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 4: Case Study 14 Empirical Deep-Dive -->
+    <section class="slide" id="slide-4">
+      <div class="slide-badge">Empirical Milestone</div>
+      <h1 class="slide-title">Phase 5 Deep-Dive: CS14 Passage Incorporation</h1>
+      <p class="slide-subtitle">
+        Physical proof of knowledge incorporation on an edge GPU without catastrophic forgetting of prior skills.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">🔬 The Grounded Knowledge Passage</div>
+          <p class="card-text" style="font-size: 0.85rem; font-style: italic;">
+            "In relativistic quantum field theory, non-adiabatic boundary acceleration (e.g. Dynamical Casimir Effect) mixes positive and negative frequency modes via Bogoliubov transformation: b_k = \alpha a_k + \beta a^\dagger_k. Spontaneous continuous-variable bipartite entanglement is generated, violating classical shot-noise limits..."
+          </p>
+          <div class="metric-box">
+            <div class="metric-value" style="color: #38bdf8;">-35.67 PPL</div>
+            <div class="metric-label">True Perplexity Reduction on Held-Out Quantum QA</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📊 Physical Audit Results (`audit_cs14.py`)</div>
+          <table class="comp-table">
+            <thead>
+              <tr>
+                <th>Evaluation Metric</th>
+                <th>Base Model</th>
+                <th>Trained LoRA</th>
+                <th>Physical Delta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Quantum Cross-Entropy</td>
+                <td>5.9552</td>
+                <td>5.8582</td>
+                <td><span class="tag tag-success">-0.0970</span></td>
+              </tr>
+              <tr>
+                <td>Token Accuracy</td>
+                <td>30.60%</td>
+                <td>31.34%</td>
+                <td><span class="tag tag-success">+0.74%</span></td>
+              </tr>
+              <tr>
+                <td>True Perplexity ($e^L$)</td>
+                <td>385.76</td>
+                <td>350.10</td>
+                <td><span class="tag tag-success">-35.67</span></td>
+              </tr>
+              <tr>
+                <td>Control Algebra Baseline</td>
+                <td>31.70</td>
+                <td>30.15</td>
+                <td><span class="tag tag-success">-1.55 (Retained)</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="card-text" style="font-size: 0.8rem;">
+            Empirical evidence confirms: LoRA update absorbed specialized physical knowledge while mathematically preserving control algebra reasoning.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 5: The Case Study 10 Collapse Discovery -->
+    <section class="slide" id="slide-5">
+      <div class="slide-badge badge-rose">Boundary Stress Test</div>
+      <h1 class="slide-title">Phase 4 Discovery: Full-Parameter Collapse</h1>
+      <p class="slide-subtitle">
+        Proving that unconstrained continuous fine-tuning is inherently catastrophic without subspace parameter isolation.
+      </p>
+
+      <div class="grid-2">
+        <div class="card" style="border-color: rgba(244, 63, 94, 0.3);">
+          <div class="card-title" style="color: var(--accent-rose);">💥 Case Study 10: Dense Full Fine-Tuning</div>
+          <p class="card-text">
+            • <strong>Configuration:</strong> LoRA removed. All 135M base parameters made trainable.<br>
+            • <strong>Input:</strong> Subjected to repetitive out-of-distribution noise.<br>
+            • <strong>Step 1–5:</strong> Loss oscillated wildly.<br>
+            • <strong>Step 15:</strong> Gradients exploded to infinity ($\infty$). Loss registered as `NaN`.<br>
+            • <strong>Outcome:</strong> Complete Representational Collapse. All outputs degenerated to `[NaN]`.
+          </p>
+          <div class="metric-box" style="border-color: rgba(244, 63, 94, 0.3);">
+            <div class="metric-value" style="color: var(--accent-rose);">Loss: NaN</div>
+            <div class="metric-label">Total Numerical & Weight Manifold Collapse</div>
+          </div>
+        </div>
+
+        <div class="card" style="border-color: rgba(16, 185, 129, 0.3);">
+          <div class="card-title" style="color: var(--accent-emerald);">🛡️ Case Study 9: LoRA Subspace Protection</div>
+          <p class="card-text">
+            • <strong>Configuration:</strong> LoRA adapter ($r=8, \alpha=16$) on `q_proj`, `v_proj`.<br>
+            • <strong>Input:</strong> Identical repetitive noise input.<br>
+            • <strong>Gradient Dynamics:</strong> Gradients flattened within the rank-8 subspace.<br>
+            • <strong>Base Model Invariance:</strong> $W_0$ remained completely untouched and frozen.<br>
+            • <strong>Outcome:</strong> Adapter can be instantly deactivated, restoring 100% original capabilities.
+          </p>
+          <div class="metric-box" style="border-color: rgba(16, 185, 129, 0.3);">
+            <div class="metric-value" style="color: var(--accent-emerald);">100% Safe</div>
+            <div class="metric-label">Base Weight Manifold Invariant Under Noise</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 6: Transition into Yukti Architecture -->
+    <section class="slide" id="slide-6">
+      <div class="slide-badge">Phase 6 Architecture</div>
+      <h1 class="slide-title">Yukti: Decoupled Epistemic Governance</h1>
+      <p class="slide-subtitle">
+        Replacing autonomous unanchored updates with a formal two-tier memory hierarchy, multi-vector triage, and human review.
+      </p>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">1️⃣ Provenance Intake</div>
+          <p class="card-text">
+            Candidate claims must submit source identifiers (URL/DOI), verbatim quotation locators, author, and prior trust scores ($0 \le \text{trust} \le 1$). Staged in `working` memory.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">2️⃣ Multi-Vector Triage</div>
+          <p class="card-text">
+            Autonomous engine evaluates 6 transparent checks: missing sources, dubious formats, low trust, SHA-256 deduplication, polar contradiction, and repetitive noise.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">3️⃣ Human Governance</div>
+          <p class="card-text">
+            Automated checks flag; they NEVER approve. Human reviewers explicitly approve/reject. Only approved items are promoted to `long_term` memory for model training.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 1.25rem;">
+        <div class="card">
+          <div class="card-title">4️⃣ Retention Benchmark Gating</div>
+          <p class="card-text">
+            Candidate adapters are benchmarked against control tasks (Algebra, Arithmetic, Logic). If control baseline perplexity degrades by <strong>&gt; 10.0%</strong>, the update is rejected.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">5️⃣ Deterministic Model Rollback</div>
+          <p class="card-text">
+            Manifest-driven registry (`models/registry.json`). An atomic CLI command (`yukti model rollback`) instantly reverts active model weights to the unadapted base model.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 7: Epistemic Triage Engine Details -->
+    <section class="slide" id="slide-7">
+      <div class="slide-badge">Triage Formulations</div>
+      <h1 class="slide-title">The Multi-Vector Epistemic Triage Engine</h1>
+      <p class="slide-subtitle">
+        Transparent, deterministic signals that replace vulnerable token-entropy sum heuristics.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Triage Dimension</th>
+            <th>Check Code</th>
+            <th>Severity</th>
+            <th>Algorithmic Mechanism</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Provenance</strong></td>
+            <td><code>missing_source</code></td>
+            <td><span class="tag tag-danger">Blocker</span></td>
+            <td>Detects empty source string or absence of valid URL/DOI scheme.</td>
+          </tr>
+          <tr>
+            <td><strong>Evidence</strong></td>
+            <td><code>missing_evidence_quote</code></td>
+            <td><span class="tag tag-warning">Warning</span></td>
+            <td>Verifies presence of direct quotation or section locator from source.</td>
+          </tr>
+          <tr>
+            <td><strong>Source Trust</strong></td>
+            <td><code>low_source_trust</code></td>
+            <td><span class="tag tag-warning">Warning</span></td>
+            <td>Flags sources with trust coefficient below calibrated threshold ($&lt; 0.50$).</td>
+          </tr>
+          <tr>
+            <td><strong>Deduplication</strong></td>
+            <td><code>exact_duplicate</code></td>
+            <td><span class="tag tag-warning">Warning</span></td>
+            <td>Canonical SHA-256 hash match: <code>hashlib.sha256(text|source)</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Contradiction</strong></td>
+            <td><code>possible_contradiction</code></td>
+            <td><span class="tag tag-danger">Blocker</span></td>
+            <td>Antonym pairing & polar negation detection against approved long-term memory.</td>
+          </tr>
+          <tr>
+            <td><strong>Degeneracy</strong></td>
+            <td><code>degenerate_repetition</code></td>
+            <td><span class="tag tag-danger">Blocker</span></td>
+            <td>Unigram frequency entropy & repetition ratio catches CS10-style noise loops.</td>
+          </tr>
+          <tr>
+            <td><strong>Speculation</strong></td>
+            <td><code>ungrounded_speculation</code></td>
+            <td><span class="tag tag-warning">Warning</span></td>
+            <td>Regex heuristic flags epistemic hedging ("I believe", "maybe", "allegedly").</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Slide 8: Empirical Validation & Test Suite -->
+    <section class="slide" id="slide-8">
+      <div class="slide-badge badge-emerald">Empirical Verification</div>
+      <h1 class="slide-title">Rigorous Validation & Zero-Regression Status</h1>
+      <p class="slide-subtitle">
+        Empirical metrics collected across our standardized test harness and evaluation benchmarks.
+      </p>
+
+      <div class="grid-3">
+        <div class="card" style="text-align: center;">
+          <div class="metric-value" style="color: var(--accent-emerald);">24 / 24</div>
+          <div class="metric-label">Unit Tests Passing Cleanly (34.8s)</div>
+          <p class="card-text" style="font-size: 0.8rem; margin-top: 0.5rem;">Covers CLI, Store ACID transactions, Governance triage, Trainer, and Registry.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div class="metric-value" style="color: var(--accent-cyan);">100.0%</div>
+          <div class="metric-label">Triage Precision & Recall</div>
+          <p class="card-text" style="font-size: 0.8rem; margin-top: 0.5rem;">Evaluated against standardized 8-case epistemic corpus. 0 False Positives, 0 False Negatives.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div class="metric-value" style="color: #a855f7;">650 MB</div>
+          <div class="metric-label">Active Training VRAM Profile</div>
+          <p class="card-text" style="font-size: 0.8rem; margin-top: 0.5rem;">SmolLM2-135M + LoRA ($r=8, \alpha=16$) under batch size 1 and gradient accumulation 4.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-title">🔬 Standardized Benchmark Corpus Results (`tests/evaluate_governance.py`)</div>
+        <div class="grid-2" style="margin-top: 0.75rem; font-size: 0.85rem; font-family: var(--font-mono);">
+          <div>
+            • [PASS] TC-01: Verified high-trust scientific fact<br>
+            • [PASS] TC-02: Unanchored claim with missing source<br>
+            • [PASS] TC-03: Missing direct evidence quotation<br>
+            • [PASS] TC-04: Low source trust warning (&lt; 0.5)
+          </div>
+          <div>
+            • [PASS] TC-05: Degenerate noise loop (CS10 collapse case)<br>
+            • [PASS] TC-06: Ungrounded speculative rumor prefix<br>
+            • [PASS] TC-07: Direct polar contradiction of approved fact<br>
+            • [PASS] TC-08: Exact SHA-256 duplicate detection
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 9: Architecture Comparison Matrix -->
+    <section class="slide" id="slide-9">
+      <div class="slide-badge">Comparative Architecture</div>
+      <h1 class="slide-title">Architectural Evolution: RM Prototype vs. Yukti</h1>
+      <p class="slide-subtitle">
+        How the limitations discovered during preliminary empirical prototyping were systematically solved in Yukti.
+      </p>
+
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>System Dimension</th>
+            <th>RM Base Prototype</th>
+            <th>Yukti Production Framework</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Governance Paradigm</strong></td>
+            <td>Single-point token Shannon entropy (HES)</td>
+            <td><strong>Multi-vector epistemic triage + human review</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Data Persistence</strong></td>
+            <td>Transient JSONL training files</td>
+            <td><strong>ACID SQLite with dual memory tiers & audit log</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Attribution & Provenance</strong></td>
+            <td>None (synthetic prompt string only)</td>
+            <td><strong>Source URL/DOI, direct quotation, author & trust</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Contradiction Defense</strong></td>
+            <td>Vulnerable to false logic (CS6 Math failure)</td>
+            <td><strong>Antonym & negation detection against approved memory</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Training Trigger</strong></td>
+            <td>Autonomous pipeline on every prompt</td>
+            <td><strong>Decoupled; explicit operator CLI invocation</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Catastrophic Forgetting</strong></td>
+            <td>Unregulated (risk of collapse as in CS10)</td>
+            <td><strong>Multi-task retention suite & &gt;10% rejection gate</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Rollback Capability</strong></td>
+            <td>Manual directory deletion</td>
+            <td><strong>Deterministic, atomic CLI rollback (`yukti model rollback`)</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Slide 10: Future Steps & Roadmap -->
+    <section class="slide" id="slide-10">
+      <div class="slide-badge badge-amber">Strategic Roadmap</div>
+      <h1 class="slide-title">Future Steps, Goals & Milestones</h1>
+      <p class="slide-subtitle">
+        Four strategic milestones to scale Yukti from local governance to distributed edge consensus.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📡 Milestone 1: Streaming Ingestion Daemon (Q1)</div>
+          <p class="card-text">
+            Build a local background service that streams candidate claims from preprint APIs (arXiv, bioRxiv, PubMed) directly into `working` memory. Automatically resolve DOIs, compute citation velocity, and cross-reference peer review databases.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">🧠 Milestone 2: Neural Contradiction Retrieval (Q2)</div>
+          <p class="card-text">
+            Integrate a local quantized dense vector model (`all-MiniLM-L6-v2` in ONNX, &lt; 80MB RAM) to enable sub-millisecond semantic search and polar Natural Language Inference (NLI) contradiction scoring over 100,000+ approved claims.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">🔀 Milestone 3: Dynamic Multi-LoRA Routing (Q3)</div>
+          <p class="card-text">
+            Enable the 135M student model to host modular domain adapters (`adapter_physics`, `adapter_math`, `adapter_biology`). Dynamically route incoming inference prompts to the relevant adapter at runtime without weight merging or interference.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title">🔐 Milestone 4: Cryptographic Provenance Consensus (Q4)</div>
+          <p class="card-text">
+            Deploy Ed25519 cryptographic signatures on all review and promotion decisions. Enable multi-agent peer validation and distributed consensus across edge workstation clusters without central authorities.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 11: Conclusion & Repository Links -->
+    <section class="slide" id="slide-11">
+      <div class="slide-badge badge-emerald">Conclusion & Repositories</div>
+      <h1 class="slide-title">Summary & Version Control</h1>
+      <p class="slide-subtitle">
+        Yukti establishes that provable epistemic governance and continual model adaptation can be achieved entirely within edge constraints.
+      </p>
+
+      <div class="grid-2" style="margin-top: 1.5rem;">
+        <div class="card" style="border-color: rgba(0, 242, 254, 0.3);">
+          <div class="card-title" style="color: var(--accent-cyan);">🚀 Primary Repository: Yukti</div>
+          <p class="card-text">
+            Contains the full epistemic governance core, SQLite persistent store, multi-task retention test suite, model registry, and adaptation runner.
+          </p>
+          <div style="margin-top: 1rem;">
+            <a href="https://github.com/Krrish-Rebba/Yukti" target="_blank" class="btn btn-primary" style="text-decoration: none;">View GitHub: Krrish-Rebba/Yukti ↗</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📦 Achieved Prototype Milestone: RM</div>
+          <p class="card-text">
+            Contains all 15 empirical case studies (CS1–CS15), LoRA checkpoints, full-parameter collapse post-mortems, and entropy audits.
+          </p>
+          <div style="margin-top: 1rem;">
+            <a href="https://github.com/Krrish-Rebba/SEAL-Dual-SLM" target="_blank" class="btn" style="text-decoration: none;">View GitHub: SEAL-Dual-SLM ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 2.5rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+        Presented by <strong>Krrish Rebbawar</strong> (1012412134), <strong>Pranav Chandane</strong> (1012412146), and <strong>Jayosmit Shinde</strong> (1012412145).
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Presentation Footer Controls -->
+  <footer>
+    <div class="keyboard-hints">
+      <span>Navigate: <span class="kbd">←</span> <span class="kbd">→</span> or <span class="kbd">Space</span></span>
+      <span>Fullscreen: <span class="kbd">F</span></span>
+    </div>
+    <div style="font-family: var(--font-mono); font-size: 0.75rem;">
+      Yukti v1.0.0 • Local-First Epistemic Architecture
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 11;
+
+    function updatePresentation() {
+      // Hide all slides
+      document.querySelectorAll('.slide').forEach((el, index) => {
+        el.classList.remove('active');
+        if (index + 1 === currentSlide) {
+          el.classList.add('active');
+        }
+      });
+
+      // Update indicator
+      document.getElementById('slide-indicator').innerText = `Slide ${currentSlide} / ${totalSlides}`;
+
+      // Update progress bar
+      const pct = (currentSlide / totalSlides) * 100;
+      document.getElementById('progress-fill').style.width = `${pct}%`;
+
+      // Button state
+      document.getElementById('btn-prev').disabled = (currentSlide === 1);
+      document.getElementById('btn-next').innerText = (currentSlide === totalSlides) ? 'Finish ↺' : 'Next →';
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+      } else {
+        currentSlide = 1; // loop back
+      }
+      updatePresentation();
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updatePresentation();
+      }
+    }
+
+    function showPhase(phaseNum) {
+      document.querySelectorAll('.timeline-step-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', (idx + 1) === phaseNum);
+      });
+      document.querySelectorAll('.phase-content-panel').forEach((panel, idx) => {
+        panel.classList.toggle('active', (idx + 1) === phaseNum);
+      });
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullScreen();
+      }
+    });
+
+    // Initialize
+    updatePresentation();
+  </script>
+</body>
+</html>
